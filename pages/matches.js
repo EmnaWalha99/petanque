@@ -20,23 +20,26 @@ export default function MatchesPage() {
     }
 
     setCurrentUser(user);
-
     fetchMatches();
   }, []);
 
   const fetchMatches = async () => {
     setLoadingMatches(true);
     try {
-      const Match = Parse.Object.extend("Match");
-      const query = new Parse.Query(Match);
-      const results = await query.find();
-      setMatches(results.map((match) => ({
-        objectId: match.id,
-        name: match.get("name"),
-        score1: match.get("score1"),
-        score2: match.get("score2"),
-      })));
+      // On récupère le session token et on le passe explicitement
+      const sessionToken = Parse.User.current()?.getSessionToken();
+
+      const results = await Parse.Cloud.run(
+        "getMatches",
+        {},
+        { sessionToken }
+      );
+      setMatches(results);
     } catch (err) {
+      if (err.code === Parse.Error.SESSION_MISSING) {
+        router.push("/login");
+        return;
+      }
       alert("Erreur lors du chargement des matchs : " + err.message);
     } finally {
       setLoadingMatches(false);
@@ -61,17 +64,16 @@ export default function MatchesPage() {
 
       <hr />
 
-      {/* onMatchAdded : après ajout, on rafraîchit la liste */}
       <MatchForm onMatchAdded={fetchMatches} />
 
       <hr />
 
-      {/* onDelete : après suppression, on rafraîchit la liste */}
       <MatchList
         matches={matches}
         onDelete={fetchMatches}
         loading={loadingMatches}
       />
+
     </div>
   );
 }

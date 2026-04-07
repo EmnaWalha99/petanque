@@ -23,12 +23,15 @@ export default function MatchForm({ onMatchAdded}){
         }
         setLoading(true);
         try{
-            const Match = Parse.Object.extend("Match");
-            const match = new Match();
-            match.set("name", name.trim());
-            match.set("score1", Number(score1));
-            match.set("score2", Number(score2));
-            await match.save();
+            // On récupère le session token et on le passe explicitement
+            const sessionToken = Parse.User.current()?.getSessionToken();
+
+            await Parse.Cloud.run(
+                "createMatch",
+                { name: name.trim(), score1: Number(score1), score2: Number(score2) },
+                { sessionToken }
+            );
+
             //reset
             setName("");
             setScore1("");
@@ -36,7 +39,6 @@ export default function MatchForm({ onMatchAdded}){
 
             //notify the parent to refresh its match list
             onMatchAdded();
-
 
         }catch(err){
             setError(err.message);

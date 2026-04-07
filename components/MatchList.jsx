@@ -8,10 +8,15 @@ export default function MatchList({matches, onDelete,loading }){
     const handleDelete = async(matchId)=>{
       setDeletingId(matchId);
       try{
-        const Match = Parse.Object.extend("Match");
-        const query = new Parse.Query(Match);
-        const match = await query.get(matchId);
-        await match.destroy();
+        // On récupère le session token et on le passe explicitement
+        const sessionToken = Parse.User.current()?.getSessionToken();
+
+        await Parse.Cloud.run(
+          "deleteMatch",
+          { matchId },
+          { sessionToken }
+        );
+
         onDelete();
       }catch(err){
         alert("Erreur lors de la suppression: "+err.message);

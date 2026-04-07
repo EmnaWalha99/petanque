@@ -16,6 +16,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await Parse.User.logIn(username, password);
+      // ensure session is ready
+      await Parse.User.currentAsync();
       router.push("/matches");
     } catch (err) {
       setError(err.message);
