@@ -10,45 +10,50 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-
+  //runs once the component mounts
   useEffect(() => {
+    //get the current user
     const user = Parse.User.current();
-
+    //if not logged in 
     if (!user) {
-      router.push("/login");
+      router.push("/login");//redirect to login page
       return;
     }
-
+    //set the state
     setCurrentUser(user);
+    //retrieve matches from backend
     fetchMatches();
   }, []);
 
   const fetchMatches = async () => {
     setLoadingMatches(true);
     try {
-      // On récupère le session token et on le passe explicitement
+      // get session token of the current user
       const sessionToken = Parse.User.current()?.getSessionToken();
-
+      //call Parse cloud function getMatches
       const results = await Parse.Cloud.run(
         "getMatches",
-        {},
-        { sessionToken }
+        {},//sans param
+        { sessionToken }//authentication
       );
+      //set results in state
       setMatches(results);
     } catch (err) {
+      //si la session invalide ou expirée
       if (err.code === Parse.Error.SESSION_MISSING) {
         router.push("/login");
         return;
       }
       alert("Erreur lors du chargement des matchs : " + err.message);
+      //or setError
     } finally {
       setLoadingMatches(false);
     }
   };
 
   const handleLogout = async () => {
-    await Parse.User.logOut();
-    router.push("/login");
+    await Parse.User.logOut();//clear session
+    router.push("/login");//redirect to login
   };
 
   return (
@@ -69,9 +74,9 @@ export default function MatchesPage() {
       <hr />
 
       <MatchList
-        matches={matches}
-        onDelete={fetchMatches}
-        loading={loadingMatches}
+        matches={matches} //data
+        onDelete={fetchMatches}//refresh after delete
+        loading={loadingMatches}//loading state
       />
 
     </div>

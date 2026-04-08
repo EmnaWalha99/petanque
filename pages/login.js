@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Parse from "../parseConfig/parseConfig";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useRouter(); //we're using an instance of the hook router to route the page after login
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -12,12 +12,13 @@ export default function LoginPage() {
 
 
   const handleLogin = async () => {
-    setError("");
-    setLoading(true);
+    setError("");//clears errors
+    setLoading(true);//start loading
     try {
-      await Parse.User.logIn(username, password);
+      await Parse.User.logIn(username, password);//when successfully logged it stores the users in session so we can retrieve the current user
       // ensure session is ready
-      await Parse.User.currentAsync();
+      await Parse.User.currentAsync(); //currentAsync for retriving user from async storage
+      //redirect to matches page
       router.push("/matches");
     } catch (err) {
       setError(err.message);
@@ -31,10 +32,11 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
+      // when we sign up we need to create a new user object
       const user = new Parse.User();
-      user.set("username", username);
+      user.set("username", username);//set the fields in db
       user.set("password", password);
-      await user.signUp();
+      await user.signUp();//send signup request to Parse
       router.push("/matches");
     } catch (err) {
       setError(err.message);

@@ -10,19 +10,19 @@ export default function MatchList({matches, onDelete,loading }){
       try{
         // On récupère le session token et on le passe explicitement
         const sessionToken = Parse.User.current()?.getSessionToken();
-
+        //appel de la cloud function deleteMatch
         await Parse.Cloud.run(
           "deleteMatch",
-          { matchId },
-          { sessionToken }
+          { matchId },//param
+          { sessionToken }//authentification
         );
 
-        onDelete();
+        onDelete();//notify parent to refresh list
       }catch(err){
         alert("Erreur lors de la suppression: "+err.message);
       }
       finally{
-        setDeletingId(null);
+        setDeletingId(null);//reset state
       }
     };
     if(loading){
@@ -47,8 +47,8 @@ export default function MatchList({matches, onDelete,loading }){
           {" "}
 
           <button
-            onClick={() => handleDelete(match.objectId)}
-            disabled={deletingId === match.objectId}
+            onClick={() => handleDelete(match.objectId)}//pass match id to delete
+            disabled={deletingId === match.objectId}//disable button during deletion
           >
             {deletingId === match.objectId ? "Suppression..." : "Supprimer"}
           </button>
